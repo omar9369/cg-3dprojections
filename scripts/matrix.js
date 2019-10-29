@@ -233,42 +233,77 @@ class Vector extends Matrix {
 
 function mat4x4identity() {
     var result = new Matrix(4, 4);
-    
+    console.log(result);
     return result;
 }
 
+
 function mat4x4translate(tx, ty, tz) {
     var result = new Matrix(4, 4);
+    for (i = 0; i < 4; i++){
+        result.data[i][i] = 1;
+    }
+    result.data[0][3] = tx;
+    result.data[0][3] = tx;
+    result.data[0][3] = tx;
     
     return result;
 }
 
 function mat4x4scale(sx, sy, sz) {
     var result = new Matrix(4, 4);
-    
+
+    result.data[0][0] = sx;
+    result.data[1][1] = sy;
+    result.data[2][2] = sz;
+    result.data[3][3] = 1;
     return result;
 }
 
 function mat4x4rotatex(theta) {
     var result = new Matrix(4, 4);
-    
+    result.data[0][0] = 1;
+    result.data[1][1] = Math.cos(theta);
+    result.data[2][2] = Math.cos(theta);
+    result.data[3][3] = 1;
+    result.data[1][2] = -(Math.sin(theta));
+    result.data[2][1] = Math.sin(theta);
     return result;
 }
+
 
 function mat4x4rotatey(theta) {
     var result = new Matrix(4, 4);
-    
+    result.data[0][0] = Math.cos(theta);
+    result.data[1][1] = 1;
+    result.data[2][2] = Math.cos(theta);
+    result.data[3][3] = 1;
+    result.data[2][0] = -(Math.sin(theta));
+    result.data[0][2] = Math.sin(theta);
     return result;
 }
+
 
 function mat4x4rotatez(theta) {
     var result = new Matrix(4, 4);
+    result.data[0][0] = Math.cos(theta);
+    result.data[0][1] = -(Math.sin(theta));
+    result.data[1][1] = Math.cos(theta);
+    result.data[2][2] = 1;
+    result.data[3][3] = 1;
+    result.data[1][0] = Math.sin(theta);
     
     return result;
 }
 
+
 function mat4x4shearxy(shx, shy) {
     var result = new Matrix(4, 4);
+    for (i = 0; i < 4; i++){
+        result.data[i][i] = 1;
+    }
+    result.data[0][2] = shx;
+    result.data[1][2] = shy;
     
     return result;
 }
