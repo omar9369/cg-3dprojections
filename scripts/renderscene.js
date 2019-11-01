@@ -49,13 +49,43 @@ function Init() {
             }
         ]
     };
+    // event handler for pressing arrow keys
+    document.addEventListener('keydown', OnKeyDown, false);
+    //You then need to define the OnKeyDown function:
+
+    // Called when user presses a key on the keyboard down 
+    function OnKeyDown(event) {
+        switch (event.keyCode) {
+            case 37: // LEFT Arrow
+                console.log("left");
+                break;
+            case 38: // UP Arrow
+                console.log("up");
+                break;
+            case 39: // RIGHT Arrow
+                console.log("right");
+                break;
+            case 40: // DOWN Arrow
+                console.log("down");
+                break;
+        }
+    }
 
     DrawScene();
 }
 
+
 // Main drawing code here! Use information contained in variable `scene`
 function DrawScene() {
+    var vrp = scene.view.vrp;
+    var vpn = scene.view.vpn;
+    var vup = scene.view.vup;
+    var prp = scene.view.prp;
+    var clip = scene.view.clip;
+    
     console.log(scene);
+    var persp = mat4x4perspective(vrp, vpn, vup, prp, clip);
+    console.log(persp);
 }
 
 // Called when user selects a new scene JSON file
