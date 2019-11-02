@@ -244,8 +244,8 @@ function mat4x4translate(tx, ty, tz) {
         result.data[i][i] = 1;
     }
     result.data[0][3] = tx;
-    result.data[0][3] = tx;
-    result.data[0][3] = tx;
+    result.data[1][3] = ty;
+    result.data[2][3] = tz;
     
     return result;
 }
@@ -324,9 +324,9 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
 
 
 function mat4x4perspective(vrp, vpn, vup, prp, clip) { 
-    var n_axis, u_axis, v_axis;
+    var n_axis, u_axis, v_axis, trans_vrp, trans_prp, rotate, shx_par, shy_par;
     // 1. translate VRP to the origin
-    mat4x4translate(-(vrp.x), -(vrp.y), -(vrp.z));
+    trans_vrp = mat4x4translate(-(vrp.x), -(vrp.y), -(vrp.z));
     // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
     //    u-axis becomes the x-axis, and v-axis becomes the y-axis
     n_axis = new Vector3(vpn.x, vpn.y, vpn.z);
@@ -334,16 +334,17 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     u_axis = vup.cross(n_axis)
     u_axis.normalize();
     v_axis = n_axis.cross(u_axis);
-
-    // console.log(n_axis);
-    // console.log(u_axis);
-    // console.log(v_axis);
+    rotate = new Matrix(4,4);
+    rotate.values = [[u_axis.x, u_axis.y, u_axis.z, 0],
+                     [v_axis.x, v_axis.y, v_axis.z, 0],
+                     [n_axis.x, n_axis.y, n_axis.z, 0],
+                     [0, 0, 0, 1]]
     
-
     // 3. translate PRP to the origin
-    mat4x4translate(-(prp.x),-(prp.y),-(prp.z));
-    console.log(prp.x);
+    trans_prp = mat4x4translate(-(prp.x),-(prp.y),-(prp.z));
+
     // 4. shear such that the center line of the view volume becomes the z-axis
+    
     // 5. scale into canonical view volume (truncated pyramid)
     //    (x = [z,-z], y = [z,-z], z = [-z_min,-1])
     

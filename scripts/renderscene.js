@@ -21,6 +21,9 @@ function Init() {
             vup: Vector3(0, 1, 0),
             prp: Vector3(14, 20, 26),
             clip: [-20, 20, -4, 36, 1, -50]
+            //u min u max, v min v max, z min z max
+            //subtract the prp
+
         },
         models: [
             {
