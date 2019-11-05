@@ -85,10 +85,31 @@ function DrawScene() {
     var vup = scene.view.vup;
     var prp = scene.view.prp;
     var clip = scene.view.clip;
-    
+    var dum;
+    var hold;
+    var transscale = new Matrix(4,4);
+    var w = view.width;
+    var h = view.height;
+    transscale.values = [[w/2, 0, 0, w/2],
+                         [0, h/2, 0, h/2],
+                         [0, 0, 1, 0],
+                         [0, 0, 0, 1]]
+
     console.log(scene);
-    var persp = mat4x4perspective(vrp, vpn, vup, prp, clip);
-    console.log(persp);
+    if(scene.view.type === 'perspective'){
+        console.log(scene.models[0].vertices[0]);
+        var persp = mat4x4perspective(vrp, vpn, vup, prp, clip);
+        for( var i = 0; i < scene.models[0].vertices.length; i++){
+            dum = new Matrix(4,1);
+            
+            hold = [];
+
+            hold = transscale.mult(persp.mult(scene.models[0].vertices[i]));
+            console.log(hold);
+        }
+    }
+    
+
 }
 
 // Called when user selects a new scene JSON file

@@ -324,7 +324,7 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
 
 
 function mat4x4perspective(vrp, vpn, vup, prp, clip) { 
-    var n_axis, u_axis, v_axis, trans_vrp, trans_prp, rotate, shx_par, shy_par;
+    var DOP, cw, n_axis, u_axis, v_axis, trans_vrp, trans_prp, rotate, shx_par, shy_par, x_avg, y_avg, z,avg, shear_cw;
     // 1. translate VRP to the origin
     trans_vrp = mat4x4translate(-(vrp.x), -(vrp.y), -(vrp.z));
     // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
@@ -344,10 +344,51 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     trans_prp = mat4x4translate(-(prp.x),-(prp.y),-(prp.z));
 
     // 4. shear such that the center line of the view volume becomes the z-axis
+    x_avg = (clip[1] + clip[0]) / 2;
+    y_avg = (clip[3] + clip[2]) / 2;
+    z_avg = 0;
+
+    cw = new Vector3(x_avg, y_avg, z_avg);
+    DOP = cw.subtract(prp);
+
+
+    shx_par = (-DOP.x)/DOP.z;
+    shy_par = (-DOP.y)/DOP.z;
     
+
+    shear_cw = mat4x4shearxy(shx_par, shy_par);
+
+
     // 5. scale into canonical view volume (truncated pyramid)
     //    (x = [z,-z], y = [z,-z], z = [-z_min,-1])
+    var S_perx, S_pery, S_perz, M_per, N_per, S_per, win_trans, win_scale, back;
+    back = clip [5]
+
+    S_perx = (2 * -(prp.z))/((clip[1] - clip[0]) * (-(prp.z) + back));
+    S_pery = (2 * -(prp.z))/((clip[3] - clip[2]) * (-(prp.z) + back));
+    S_perz = (-1)/ (-(prp.z) + back);
     
+
+    S_per = new Matrix(4,4);
+
+    S_per.values = [[S_perx, 0, 0, 0],
+                    [0, S_pery, 0, 0],
+                    [0, 0, S_perz, 0],
+                    [0, 0, 0, 1]]
+
+    // clip against canonical view frustum
+    var z_min = -(-(prp.z) + 1)/(-(prp.z) + -1);
+    M_per = new Matrix(4,4);
+
+    M_per.values = [[1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, -1, 0]]
+
+    
+    N_per = Matrix.multiply(M_per, S_per, shear_cw, trans_prp, rotate, trans_vrp);
+
+    return N_per;
 }
 
 function mat4x4mper(near) {
