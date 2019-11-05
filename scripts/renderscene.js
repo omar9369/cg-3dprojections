@@ -40,6 +40,7 @@ function Init() {
                     Vector4(10, 20, -60, 1),
                     Vector4( 0, 12, -60, 1)
                 ],
+                // these are the index of vec
                 edges: [
                     [0, 1, 2, 3, 4, 0],
                     [5, 6, 7, 8, 9, 5],
@@ -86,10 +87,13 @@ function DrawScene() {
     var prp = scene.view.prp;
     var clip = scene.view.clip;
     var dum;
-    var hold;
+    var hold_x, hold_y, hold_z;
     var transscale = new Matrix(4,4);
     var w = view.width;
     var h = view.height;
+    var vec;
+    var final;
+    var edge;
     transscale.values = [[w/2, 0, 0, w/2],
                          [0, h/2, 0, h/2],
                          [0, 0, 1, 0],
@@ -97,16 +101,32 @@ function DrawScene() {
 
     console.log(scene);
     if(scene.view.type === 'perspective'){
-        console.log(scene.models[0].vertices[0]);
         var persp = mat4x4perspective(vrp, vpn, vup, prp, clip);
-        for( var i = 0; i < scene.models[0].vertices.length; i++){
-            dum = new Matrix(4,1);
-            
-            hold = [];
+        vec = [];
+        for(i = 0; i < scene.models[0].vertices.length; i++){
 
-            hold = transscale.mult(persp.mult(scene.models[0].vertices[i]));
-            console.log(hold);
+            vec.push(Matrix.multiply(transscale, persp, scene.models[0].vertices[i]));
+            //console.log(vec);
+            hold_x = vec[i].x / vec[i].w;
+            hold_y = vec[i].y / vec[i].w;
+            hold_z = vec[i].z / vec[i].w;
+            vec[i].x = hold_x;
+            vec[i].y = hold_y;
+            vec[i].z = hold_z;
+
         }
+        console.log(vec);
+        //loop through the edges and draw the lines
+        for(j = 0; j < scene.models[0].edges.length; j++){
+            for(k = 0; k < scene.models[0].edges[j].length; k=k+2){
+               //console.log(vec[scene.models[0].edges[j][k]].x + "," +vec[scene.models[0].edges[j][k]].y);
+                DrawLine(vec[scene.models[0].edges[j][k]].x, vec[scene.models[0].edges[j][k]].y, vec[scene.models[0].edges[j][k+1]].x, vec[scene.models[0].edges[j][k+1]].y);
+            }
+        }
+        
+        
+        
+        
     }
     
 
