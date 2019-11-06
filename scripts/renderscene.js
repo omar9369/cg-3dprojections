@@ -118,8 +118,7 @@ function DrawScene() {
         console.log(vec);
         //loop through the edges and draw the lines
         for(j = 0; j < scene.models[0].edges.length; j++){
-            for(k = 0; k < scene.models[0].edges[j].length; k=k+2){
-               //console.log(vec[scene.models[0].edges[j][k]].x + "," +vec[scene.models[0].edges[j][k]].y);
+            for(k = 0; k < scene.models[0].edges[j].length-1; k=k+1){
                 DrawLine(vec[scene.models[0].edges[j][k]].x, vec[scene.models[0].edges[j][k]].y, vec[scene.models[0].edges[j][k+1]].x, vec[scene.models[0].edges[j][k+1]].y);
             }
         }

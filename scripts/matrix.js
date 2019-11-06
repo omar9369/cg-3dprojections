@@ -312,9 +312,19 @@ function mat4x4shearxy(shx, shy) {
 
 function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     // 1. translate VRP to the origin
-    
+    trans_vrp = mat4x4translate(-(vrp.x), -(vrp.y), -(vrp.z));
     // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
     //    u-axis becomes the x-axis, and v-axis becomes the y-axis
+    n_axis = new Vector3(vpn.x, vpn.y, vpn.z);
+    n_axis.normalize();
+    u_axis = vup.cross(n_axis)
+    u_axis.normalize();
+    v_axis = n_axis.cross(u_axis);
+    rotate = new Matrix(4,4);
+    rotate.values = [[u_axis.x, u_axis.y, u_axis.z, 0],
+                     [v_axis.x, v_axis.y, v_axis.z, 0],
+                     [n_axis.x, n_axis.y, n_axis.z, 0],
+                     [0, 0, 0, 1]]
     // 3. shear such that the DOP becomes parallel to the z-axis
     // 4. translate and scale into canonical view volume
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
