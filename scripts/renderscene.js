@@ -87,34 +87,46 @@ function OnKeyDown(event) {
         
         case 37: // LEFT Arrow
             console.log("left");
-            multMatrix = new mat4x4translate(n_axis.x,n_axis.y,n_axis.z);
+            //change n to u_axis
+            multMatrix = new mat4x4translate(-u_axis.x,-u_axis.y,-u_axis.z);
             multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);
             solution = Matrix.multiply(multMatrix, multVector);
-            vrp_x = solution.x;
-            scene.view.vrp.x = vrp_x;
+            scene.view.vrp.x = solution.x;
+            scene.view.vrp.y = solution.y;
+            scene.view.vrp.z = solution.z;
             DrawScene();
             break;
         case 38: // UP Arrow
             console.log("up");
-            multMatrix = new mat4x4translate(n_axis.x,n_axis.y,n_axis.z);
+            multMatrix = new mat4x4translate(-n_axis.x,-n_axis.y,-n_axis.z);
             multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);
             solution = Matrix.multiply(multMatrix, multVector);
-            vrp_y = solution.y;
-            scene.view.vrp.y = vrp_y;
+            scene.view.vrp.x = solution.x;
+            scene.view.vrp.y = solution.y;
+            scene.view.vrp.z = solution.z;
             console.log(multMatrix);
             DrawScene();
             break;
         case 39: // RIGHT Arrow
             console.log("right");
-            multMatrix = new mat4x4translate(-n_axis.x,n_axis.y,n_axis.z);
+            multMatrix = new mat4x4translate(u_axis.x,u_axis.y,u_axis.z);
             multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);
             solution = Matrix.multiply(multMatrix, multVector);
-            vrp_x = solution.x;
-            scene.view.vrp.x = vrp_x;
+            scene.view.vrp.x = solution.x;
+            scene.view.vrp.y = solution.y;
+            scene.view.vrp.z = solution.z;
             DrawScene();
             break;
         case 40: // DOWN Arrow
             console.log("down");
+            multMatrix = new mat4x4translate(n_axis.x,n_axis.y,n_axis.z);
+            multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);
+            solution = Matrix.multiply(multMatrix, multVector);
+            scene.view.vrp.x = solution.x;
+            scene.view.vrp.y = solution.y;
+            scene.view.vrp.z = solution.z;
+            console.log(multMatrix);
+            DrawScene(); 
             break;
     }
 }
@@ -122,6 +134,8 @@ function OnKeyDown(event) {
 
 // Main drawing code here! Use information contained in variable `scene`
 function DrawScene() {
+    ctx.clearRect(0,0, view.width, view.height);
+
     console.log(scene.view.vrp);
     vrp = scene.view.vrp;
     vpn = scene.view.vpn;
