@@ -308,6 +308,7 @@ function mat4x4shearxy(shx, shy) {
 }
 
 function mat4x4parallel(vrp, vpn, vup, prp, clip) {
+    var shx_par, shy_par, shear_cw, DOP, cw, cw_x, cw_y, T_par;
     // 1. translate VRP to the origin
     trans_vrp = mat4x4translate(-(vrp.x), -(vrp.y), -(vrp.z));
     // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
@@ -323,8 +324,45 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
                      [n_axis.x, n_axis.y, n_axis.z, 0],
                      [0, 0, 0, 1]]
     // 3. shear such that the DOP becomes parallel to the z-axis
+    x_avg = (clip[1] + clip[0]) / 2;
+    y_avg = (clip[3] + clip[2]) / 2;
+    z_avg = 0;
+    cw = new Vector3(x_avg, y_avg, z_avg);
+    DOP = cw.subtract(prp);
+
+    shx_par = (-DOP.x)/DOP.z;
+    shy_par = (-DOP.y)/DOP.z;
+    shear_cw = mat4x4shearxy(shx_par, shy_par);
+
+    //Translate CWxy and front clipping plane to origin
+    cw_x = (clip[1] + clip[0]) / 2;
+    cw_y = (clip[3] + clip[2]) / 2;
+
+    //is front clip[4] or clip[5]
+    T_par = [[1, 0, 0, -cw_x],
+             [0, 1, 0, -cw_y],
+             [0, 0, 1, -(clip[4])],
+             [0, 0, 0, 1]]
+
+
+
     // 4. translate and scale into canonical view volume
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
+    var S_par_x, S_par_z, S_par_y, S_par, N_par, trans_vrp;
+    S_par_x = 2 / (clip[1] - clip[0]);
+    S_par_y = 2 / (clip[3] - clip[2]);
+    S_par_z = 1 / (clip[4] - clip[5]);
+    S_par = new Matrix(4,4);
+    S_par.values = [[S_par_x, 0, 0, 0],
+                    [0, S_par_y, 0, 0],
+                    [0, 0, S_par_z, 0],
+                    [0, 0, 0, 1]]
+                    
+
+
+    //Multiplying all together, Check if this is right!!!!!!!
+    var N_par = Matrix.multiply(Spar, T_par, shear_cw, rotate, trans_vrp);
+
 }
 
 function mat4x4perspective(vrp, vpn, vup, prp, clip) { 
@@ -362,7 +400,7 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
 
     // 5. scale into canonical view volume (truncated pyramid)
     //    (x = [z,-z], y = [z,-z], z = [-z_min,-1])
-    var S_perx, S_pery, S_perz, M_per, N_per, S_per, win_trans, win_scale, back;
+    var S_perx, S_pery, S_perz, N_per, S_per, back;
     back = clip [5]
 
     S_perx = (2 * -(prp.z))/((clip[1] - clip[0]) * (-(prp.z) + back));

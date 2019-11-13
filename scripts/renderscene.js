@@ -207,6 +207,10 @@ function DrawScene() {
 
         // }
         //console.log(getOutcode(new Vector4(30, -10, 10, 1)));
+    }else{
+        //Parallel clipping
+        var paral = mat4x4parallel(vrp, vpn, vup, prp, clip);
+
     }
 }
 
