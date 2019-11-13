@@ -26,12 +26,12 @@ function Init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective',
-            vrp: Vector3(20, 0, -30),
-            vpn: Vector3(1, 0, 1),
+            type: 'parallel',
+            vrp: Vector3(0, 0, 0),
+            vpn: Vector3(0, 0, 1),
             vup: Vector3(0, 1, 0),
-            prp: Vector3(14, 20, 26),
-            clip: [-20, 20, -4, 36, 1, -50]
+            prp: Vector3(0, 0, 100),
+            clip: [-1, 17, -0.5, 13, 1, -50]
             //u min u max, v min v max, z min z max
             //subtract the prp
 
@@ -162,8 +162,8 @@ function DrawScene() {
     if(scene.view.type === 'perspective'){
         var persp = mat4x4perspective(vrp, vpn, vup, prp, clip);
         vec = [];
-        for(i = 0; i < scene.models[0].vertices.length; i++){
-
+        for(var i = 0; i < scene.models[0].vertices.length; i++){
+            
             vec.push(Matrix.multiply(persp, scene.models[0].vertices[i]));
             // console.log(vec);
             //hold_x = vec[i].x / vec[i].w;
@@ -183,8 +183,8 @@ function DrawScene() {
                         [0, 0, 1, 0],
                         [0, 0, -1, 0]]
 
-        for(j = 0; j < scene.models[0].edges.length; j++){
-            for(k = 0; k < scene.models[0].edges[j].length-1; k=k+1){
+        for(var j = 0; j < scene.models[0].edges.length; j++){
+            for(var k = 0; k < scene.models[0].edges[j].length-1; k=k+1){
                 veclip = Vector3(vec[scene.models[0].edges[j][k]].x, vec[scene.models[0].edges[j][k]].y, vec[scene.models[0].edges[j][k]].z);
                 veclip1 = Vector3(vec[scene.models[0].edges[j][k+1]].x, vec[scene.models[0].edges[j][k+1]].y, vec[scene.models[0].edges[j][k+1]].z);
                
@@ -194,7 +194,7 @@ function DrawScene() {
                     //APPLY MATRICES
                     lineToCheck.pt0 = Matrix.multiply(transscale,M_per,lineToCheck.pt0);
                     lineToCheck.pt1 = Matrix.multiply(transscale,M_per,lineToCheck.pt1);
-
+                    console.log("LOL");
                     //DRAWLINE
                     DrawLine((lineToCheck.pt0.x)/(lineToCheck.pt0.w),(lineToCheck.pt0.y)/(lineToCheck.pt0.w),(lineToCheck.pt1.x)/(lineToCheck.pt1.w),(lineToCheck.pt1.y)/(lineToCheck.pt1.w));
                 }
@@ -210,6 +210,35 @@ function DrawScene() {
     }else{
         //Parallel clipping
         var paral = mat4x4parallel(vrp, vpn, vup, prp, clip);
+        vec = [];
+        for(var i = 0; i < scene.models[0].vertices.length; i++){
+            vec.push(Matrix.multiply(paral, scene.models[0].vertices[i]));
+            //hold_x = vec[i].x / vec[i].w;
+            //hold_y = vec[i].y / vec[i].w;
+            //hold_z = vec[i].z / vec[i].w;
+            //vec[i].x = hold_x;
+            //vec[i].y = hold_y;
+            //vec[i].z = hold_z;
+
+        }
+        for(var j = 0; j < scene.models[0].edges.length; j++){
+            for(var k = 0; k < scene.models[0].edges[j].length-1; k=k+1){
+                var veclip = Vector4(vec[scene.models[0].edges[j][k]].x, vec[scene.models[0].edges[j][k]].y, vec[scene.models[0].edges[j][k]].z, 1);
+                var veclip1 = Vector4(vec[scene.models[0].edges[j][k+1]].x, vec[scene.models[0].edges[j][k+1]].y, vec[scene.models[0].edges[j][k+1]].z, 1);
+                var lineToCheck = ClipLine(veclip, veclip1);
+                console.log(lineToCheck);
+                if(lineToCheck !== null)
+                {
+                    //APPLY MATRICES
+                    lineToCheck.pt0 = Matrix.multiply(transscale, lineToCheck.pt0);
+                    lineToCheck.pt1 = Matrix.multiply(transscale, lineToCheck.pt1);
+
+                    //DRAWLINE
+                    DrawLine((lineToCheck.pt0.x)/(lineToCheck.pt0.w),(lineToCheck.pt0.y)/(lineToCheck.pt0.w),(lineToCheck.pt1.x)/(lineToCheck.pt1.w),(lineToCheck.pt1.y)/(lineToCheck.pt1.w));
+                }
+
+            }
+        }
 
     }
 }
@@ -217,9 +246,6 @@ function DrawScene() {
 // Called when user selects a new scene JSON file
 function LoadNewScene() {
     var scene_file = document.getElementById('scene_file');
-
-    // console.log(scene_file.files[0]);
-
     var reader = new FileReader();
     reader.onload = (event) => {
         scene = JSON.parse(event.target.result);
@@ -264,25 +290,45 @@ function DrawLine(x1, y1, x2, y2) {
 }
 
 function getOutcode(pt){
-    
-    var outcode = 0;
-    if(pt.x < pt.z){
-        outcode += LEFT;
-    }
-    else if(pt.x > -(pt.z)){
-        outcode += RIGHT;
-    }
-    if(pt.y < pt.z){
-        outcode += BOTTOM;
-    }
-    else if(pt.y > -(pt.z)){
-        outcode += TOP;
-    }
-    if(pt.z > z_min){
-        outcode += FRONT;
-    }
-    else if(pt.z < -1){
-        outcode += BACK;
+    if(scene.view.type === "perspective"){
+        var outcode = 0;
+        if(pt.x < pt.z){
+            outcode += LEFT;
+        }
+        else if(pt.x > -(pt.z)){
+            outcode += RIGHT;
+        }
+        if(pt.y < pt.z){
+            outcode += BOTTOM;
+        }
+        else if(pt.y > -(pt.z)){
+            outcode += TOP;
+        }
+        if(pt.z > z_min){
+            outcode += FRONT;
+        }
+        else if(pt.z < -1){
+            outcode += BACK;
+        }
+    }else{
+        if(pt.x < -1){
+            outcode += LEFT;
+        }
+        else if(pt.x > 1){
+            outcode += RIGHT;
+        }
+        if(pt.y < -1){
+            outcode += BOTTOM;
+        }
+        else if(pt.y > 1){
+            outcode += TOP;
+        }
+        if(pt.z > 0){
+            outcode += FRONT;
+        }
+        else if(pt.z < -1){
+            outcode += BACK;
+        }
     }
     
    // console.log("I got here! Outcode: " + outcode);
@@ -301,76 +347,98 @@ function ClipLine(pt0, pt1){
 
     var done = false;
     var t;
-    // console.log(outcode0);
-    // console.log(outcode1);
-    while (!done) {
-        if((outcode0 | outcode1) === 0){ // trivial accept
-            done = true;
-            result.pt0 = Vector4(pt0.x, pt0.y, pt0.z, pt0.w);
-            result.pt1 = Vector4(pt1.x, pt1.y, pt1.z, pt1.w);
-           
-            // console.log("hi");
-        }
-        else if((outcode0 & outcode1) !== 0) { // trivial reject
-            done = true;
-            result = null;
-        }
-        else{
-            var selected_pt;
-            var selected_outcode;
-            if(outcode0 > 0){
-                selected_pt = pt0;
-                selected_outcode = outcode0;
+    //console.log(outcode0);
+    if(scene.view.type === "perspective"){
+        while (!done) {
+            if((outcode0 | outcode1) === 0){ // trivial accept
+                done = true;
+                result.pt0 = Vector4(pt0.x, pt0.y, pt0.z, pt0.w);
+                result.pt1 = Vector4(pt1.x, pt1.y, pt1.z, pt1.w);
+            }
+            else if((outcode0 & outcode1) !== 0) { // trivial reject
+                done = true;
+                result = null;
             }
             else{
-                selected_pt = pt1;
-                selected_outcode = outcode1;
+                var selected_pt;
+                var selected_outcode;
+                if(outcode0 > 0){
+                    selected_pt = pt0;
+                    selected_outcode = outcode0;
+                }
+                else{
+                    selected_pt = pt1;
+                    selected_outcode = outcode1;
+                }
+                if((selected_outcode & LEFT) === LEFT){
+                    t = ((-(selected_pt.x) + selected_pt.z)/(delta_x - delta_z));
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }
+                else if ((selected_outcode & RIGHT ) === RIGHT){
+                    t = ((selected_pt.x + selected_pt.z)/(-(delta_x) - delta_z));
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }
+                else if ((selected_outcode & BOTTOM ) === BOTTOM){
+                    t = ((-(selected_pt.y) + selected_pt.z)/(delta_y - delta_z));
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }
+                else if ((selected_outcode & TOP) === TOP){
+                    t = ((selected_pt.y + selected_pt.z)/(-(delta_y) - delta_z));
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }
+                else if((selected_outcode & FRONT) === FRONT){
+                    t = ((selected_pt.z - z_min)/(-(delta_z)));
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }else{
+                    t = ((-(selected_pt.z) - 1)/(delta_z));
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }
+                selected_outcode = getOutcode(selected_outcode);
+                if(outcode0 > 0){
+                    outcode0 = selected_outcode;
+                }
+                else{
+                    outcode1 = selected_outcode;
+                }
             }
-            if((selected_outcode & LEFT) === LEFT){
-                t = ((-(selected_pt.x) + selected_pt.z)/(delta_x - delta_z));
-                selected_pt.x = selected_pt.x + t * (delta_x);
-                selected_pt.y = selected_pt.y + t * (delta_y);
-                selected_pt.z = selected_pt.z + t * (delta_z);
+            
+        }
+    }else{
+        while (!done) {
+            if((outcode0 | outcode1) === 0){ // trivial accept
+                done = true;
+                result.pt0 = Vector4(pt0.x, pt0.y, pt0.z, pt0.w);
+                result.pt1 = Vector4(pt1.x, pt1.y, pt1.z, pt1.w);
             }
-            else if ((selected_outcode & RIGHT ) === RIGHT){
-                t = ((selected_pt.x + selected_pt.z)/(-(delta_x) - delta_z));
-                selected_pt.x = selected_pt.x + t * (delta_x);
-                selected_pt.y = selected_pt.y + t * (delta_y);
-                selected_pt.z = selected_pt.z + t * (delta_z);
-            }
-            else if ((selected_outcode & BOTTOM ) === BOTTOM){
-                t = ((-(selected_pt.y) + selected_pt.z)/(delta_y - delta_z));
-                selected_pt.x = selected_pt.x + t * (delta_x);
-                selected_pt.y = selected_pt.y + t * (delta_y);
-                selected_pt.z = selected_pt.z + t * (delta_z);
-            }
-            else if ((selected_outcode & TOP) === TOP){
-                t = ((selected_pt.y + selected_pt.z)/(-(delta_y) - delta_z));
-                selected_pt.x = selected_pt.x + t * (delta_x);
-                selected_pt.y = selected_pt.y + t * (delta_y);
-                selected_pt.z = selected_pt.z + t * (delta_z);
-            }
-            else if((selected_outcode & FRONT) === FRONT){
-                t = ((selected_pt.z - z_min)/(-(delta_z)));
-                selected_pt.x = selected_pt.x + t * (delta_x);
-                selected_pt.y = selected_pt.y + t * (delta_y);
-                selected_pt.z = selected_pt.z + t * (delta_z);
-            }else{
-                t = ((-(selected_pt.z) - 1)/(delta_z));
-                selected_pt.x = selected_pt.x + t * (delta_x);
-                selected_pt.y = selected_pt.y + t * (delta_y);
-                selected_pt.z = selected_pt.z + t * (delta_z);
-            }
-            selected_outcode = getOutcode(selected_outcode);
-            if(outcode0 > 0){
-                outcode0 = selected_outcode;
+            else if((outcode0 & outcode1) !== 0) { // trivial reject
+                done = true;
+                result = null;
             }
             else{
-                outcode1 = selected_outcode;
+                var selected_pt;
+                var selected_outcode;
+                if((selected_outcode & LEFT) === LEFT){
+                    t = -1-(selected_pt.x)/delta_x;
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }
+                //right, top bottom, front, back
+
             }
         }
-         
-    }
     //Draw Line Here DO NOT RETURN
     /*if(result != null){
         DrawLine(result.pt0.x,result.pt0.y,result.pt1.x,result.pt1.y);

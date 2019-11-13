@@ -308,7 +308,7 @@ function mat4x4shearxy(shx, shy) {
 }
 
 function mat4x4parallel(vrp, vpn, vup, prp, clip) {
-    var shx_par, shy_par, shear_cw, DOP, cw, cw_x, cw_y, T_par;
+    var shx_par, shy_par, shear_cw, DOP, cw, cw_x, cw_y, T_par, x_avg, y_avg, z_avg, v_axis, n_axis, u_axis, trans_vrp, rotate;
     // 1. translate VRP to the origin
     trans_vrp = mat4x4translate(-(vrp.x), -(vrp.y), -(vrp.z));
     // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
@@ -339,12 +339,12 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     cw_y = (clip[3] + clip[2]) / 2;
 
     //is front clip[4] or clip[5]
-    T_par = [[1, 0, 0, -cw_x],
-             [0, 1, 0, -cw_y],
-             [0, 0, 1, -(clip[4])],
-             [0, 0, 0, 1]]
 
-
+    T_par = new Matrix(4,4);
+    T_par.values = [[1, 0, 0, -cw_x],
+                    [0, 1, 0, -cw_y],
+                    [0, 0, 1, -(clip[4])],
+                    [0, 0, 0, 1]]
 
     // 4. translate and scale into canonical view volume
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
@@ -361,8 +361,9 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
 
 
     //Multiplying all together, Check if this is right!!!!!!!
-    var N_par = Matrix.multiply(Spar, T_par, shear_cw, rotate, trans_vrp);
-
+    var N_par = Matrix.multiply(S_par, T_par, shear_cw, rotate, trans_vrp);
+    console.log(N_par);
+    return N_par;
 }
 
 function mat4x4perspective(vrp, vpn, vup, prp, clip) { 
