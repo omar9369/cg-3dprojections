@@ -27,11 +27,11 @@ function Init() {
     scene = {
         view: {
             type: 'parallel',
-            vrp: Vector3(0, 0, 0),
-            vpn: Vector3(0, 0, 1),
+            vrp: Vector3(20, 0, -30),
+            vpn: Vector3(1, 0, 1),
             vup: Vector3(0, 1, 0),
-            prp: Vector3(0, 0, 100),
-            clip: [-1, 17, -0.5, 13, 1, -50]
+            prp: Vector3(14, 20, 26),
+            clip: [-20, 20, -4, 36, 1, -50]
             //u min u max, v min v max, z min z max
             //subtract the prp
 
@@ -415,6 +415,13 @@ function ClipLine(pt0, pt1){
             }
             
         }
+        
+    //Draw Line Here DO NOT RETURN
+    /*if(result != null){
+        DrawLine(result.pt0.x,result.pt0.y,result.pt1.x,result.pt1.y);
+    }*/
+
+    return result;
     }else{
         while (!done) {
             if((outcode0 | outcode1) === 0){ // trivial accept
@@ -434,15 +441,46 @@ function ClipLine(pt0, pt1){
                     selected_pt.x = selected_pt.x + t * (delta_x);
                     selected_pt.y = selected_pt.y + t * (delta_y);
                     selected_pt.z = selected_pt.z + t * (delta_z);
+                }else if ((selected_outcode & RIGHT) === RIGHT){
+                    t = 1-(selected_pt.x)/delta_x;
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }else if((selected_outcode & BOTTOM) === BOTTOM){
+                    t = -1-(selected_pt.y)/delta_y;
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+
+                }else if((selected_outcode & TOP) === TOP){
+                    t = 1-(selected_pt.y)/delta_y;
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                
+                }else if ((selected_outcode & FRONT) === FRONT){
+                    t = -1-(selected_pt.z)/delta_z;
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }else{
+                    t = 1-(selected_pt.y)/delta_y;
+                    selected_pt.x = selected_pt.x + t * (delta_x);
+                    selected_pt.y = selected_pt.y + t * (delta_y);
+                    selected_pt.z = selected_pt.z + t * (delta_z);
+                }
+                selected_outcode = getOutcode(selected_outcode);
+                if(outcode0 > 0){
+                    outcode0 = selected_outcode;
+                }
+                else{
+                    outcode1 = selected_outcode;
                 }
                 //right, top bottom, front, back
 
             }
         }
-    //Draw Line Here DO NOT RETURN
-    /*if(result != null){
-        DrawLine(result.pt0.x,result.pt0.y,result.pt1.x,result.pt1.y);
-    }*/
 
+    }
     return result;
 }
