@@ -232,8 +232,7 @@ class Vector extends Matrix {
 
 
 function mat4x4identity() {
-    var result = new Matrix(4, 4);
-    
+    var result = new Matrix(4, 4);    
     return result;
 }
 
@@ -427,8 +426,7 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
 
 function mat4x4mper(near) {
     // convert perspective canonical view volume into the parallel one
-    var result = new Matrix(4, 4);
-    
+    var result = new Matrix(4, 4);    
     return result;
 }
 

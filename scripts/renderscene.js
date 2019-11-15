@@ -1,6 +1,10 @@
+//---------------------------------------------//
+//GLOBAL VARIABLES
 var view;
 var ctx;
 var scene;
+var theta = 0;
+var start_time;
 
 var LEFT = 32;
 var RIGHT = 16;
@@ -11,7 +15,7 @@ var BACK = 1;
 var z_min;
 var vrp, vpn, vup, prp;
 
-
+//---------------------------------------------------------//
 // Initialization function - called when web page loads
 function Init() {
     var w = 800;
@@ -19,14 +23,14 @@ function Init() {
     view = document.getElementById('view');
     view.width = w;
     view.height = h;
-
+    start_time = performance.now();
     ctx = view.getContext('2d');
     
 
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'parallel',
+            type: 'perspective',
             vrp: Vector3(20, 0, -30),
             vpn: Vector3(1, 0, 1),
             vup: Vector3(0, 1, 0),
@@ -60,20 +64,55 @@ function Init() {
                     [2, 7],
                     [3, 8],
                     [4, 9]
-                ]
+                ],
+                animation: {
+                    axis: "y",
+                    rps: 0.5
+                }
+
             }
         ]
     };
-    z_min = -(-(scene.view.prp.z) + scene.view.clip[4])/(-(scene.view.prp.z) + scene.view.clip[5]);
-   
 
+    var x_min, x_max, y_min, y_max, z_min, z_max, x_avg, y_avg, z_avg;
+    x_min = scene.models[0].vertices[0].x;
+    x_max = scene.models[0].vertices[0].x;
+    y_min = scene.models[0].vertices[0].y;
+    y_max = scene.models[0].vertices[0].y;
+    z_min = scene.models[0].vertices[0].z;
+    z_max = scene.models[0].vertices[0].z;
+    for(var i = 0; i < scene.models[0].vertices.length; i++){
+        if(scene.models[0].vertices[i].x < x_min){
+            x_min = scene.models[0].vertices[i].x;
+        }else if(scene.models[0].vertices[i].x > x_max){
+            x_max = scene.models[0].vertices[i].x;
+        }else if(scene.models[0].vertices[i].y < y_min){
+            y_min = scene.models[0].vertices[i].y;
+        }
+        else if(scene.models[0].vertices[i].y > y_max){
+            y_max = scene.models[0].vertices[i].y;
+        }
+        else if(scene.models[0].vertices[i].z < z_min){
+            z_min = scene.models[0].vertices[i].z;
+        }
+        else if(scene.models[0].vertices[i].z > z_max){
+            z_max = scene.models[0].vertices[i].z;
+        }
+    }
+    x_avg = (x_min + x_max) / 2;
+    y_avg = (y_min + y_max) / 2;
+    z_avg = (z_min + z_max) / 2;
+    scene.models[0].middle = Vector3(x_avg, y_avg, z_avg);
+
+
+    z_min = -(-(scene.view.prp.z) + scene.view.clip[4])/(-(scene.view.prp.z) + scene.view.clip[5]);
     // event handler for pressing arrow keys
     document.addEventListener('keydown', OnKeyDown, false);
-    //You then need to define the OnKeyDown function:
-    
-    
-    DrawScene();
+    start_time = performance.now(); // current timestamp in milliseconds
+	prev_time = start_time;
+	window.requestAnimationFrame(Animate);
 }
+
 function OnKeyDown(event) {
     var n_axis = new Vector3(scene.view.vpn.x, scene.view.vpn.y, scene.view.vpn.z);
     n_axis.normalize();
@@ -84,27 +123,26 @@ function OnKeyDown(event) {
     var solution, vrp_x, vrp_y, vrp_z;
 
     switch (event.keyCode) {
-        
         case 37: // LEFT Arrow
             console.log("left");
-            //change n to u_axis
-            multMatrix = new mat4x4translate(-u_axis.x,-u_axis.y,-u_axis.z);
-            multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);
+			multMatrix = new mat4x4translate(-u_axis.x,-u_axis.y,-u_axis.z);
+			multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);	
             solution = Matrix.multiply(multMatrix, multVector);
             scene.view.vrp.x = solution.x;
             scene.view.vrp.y = solution.y;
             scene.view.vrp.z = solution.z;
+
             DrawScene();
             break;
         case 38: // UP Arrow
             console.log("up");
-            multMatrix = new mat4x4translate(-n_axis.x,-n_axis.y,-n_axis.z);
-            multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);
+			multMatrix = new mat4x4translate(-n_axis.x,-n_axis.y,-n_axis.z);           
+			multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);	
             solution = Matrix.multiply(multMatrix, multVector);
             scene.view.vrp.x = solution.x;
             scene.view.vrp.y = solution.y;
             scene.view.vrp.z = solution.z;
-            console.log(multMatrix);
+
             DrawScene();
             break;
         case 39: // RIGHT Arrow
@@ -120,7 +158,7 @@ function OnKeyDown(event) {
         case 40: // DOWN Arrow
             console.log("down");
             multMatrix = new mat4x4translate(n_axis.x,n_axis.y,n_axis.z);
-            multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);
+            multVector = new Vector4(scene.view.vrp.x,scene.view.vrp.y,scene.view.vrp.z,1);	
             solution = Matrix.multiply(multMatrix, multVector);
             scene.view.vrp.x = solution.x;
             scene.view.vrp.y = solution.y;
@@ -131,12 +169,64 @@ function OnKeyDown(event) {
     }
 }
 
+function Animate(timestamp) {
+    // step 1: calculate time (time since start) 
+        //and/or delta time (time between successive frames)
+    // step 2: transform models based on time or delta time
+    // step 3: draw scene
+    // step 4: request next animation frame (recursively calling same function)
+    
+    var time = timestamp - prev_time;
+    prev_time = timestamp;
+    var avg = new Vector(scene.models[0].middle); 
 
-// Main drawing code here! Use information contained in variable `scene`
+
+    //console.log(avg);
+    
+    var theta = (scene.models[0].animation.rps) * (2* Math.PI) * time/1000;
+    //translate
+    var trans_model = mat4x4translate(-avg.x, -avg.y, -avg.z);
+    var rotate_model;
+    //rotate
+    if(scene.models[0].animation.axis === "x"){
+        rotate_model = mat4x4rotatex(theta);
+    }else if(scene.models[0].animation.axis === "y"){
+        rotate_model = mat4x4rotatey(theta);
+    }else{
+        rotate_model = mat4x4rotatez(theta);
+    }
+    
+
+    //translate
+    var trans_back = mat4x4translate(avg.x, avg.y, avg.z);
+
+    //multiply all together.
+	var hold_vector;
+	var newMatrix = new Matrix(4,4);
+	var i;
+    //loop through all vertices, apply this matrix to x_axis for x rotation
+    console.log()
+	for(i = 0; i < scene.models[0].vertices.length; i++)
+	{    
+        hold_vector = Vector4(scene.models[0].vertices[i].x,scene.models[0].vertices[i].y,scene.models[0].vertices[i].z,scene.models[0].vertices[i].w);
+		newMatrix = Matrix.multiply(trans_back, rotate_model, trans_model, hold_vector);
+		scene.models[0].vertices[i].x = newMatrix.x;
+		scene.models[0].vertices[i].y = newMatrix.y;
+		scene.models[0].vertices[i].z = newMatrix.z;
+		scene.models[0].vertices[i].w = newMatrix.w;
+    }
+	
+	// ... Step 3
+    DrawScene();
+
+	// ... Step 4S
+    window.requestAnimationFrame(Animate);
+}
+
+
 function DrawScene() {
+	view = document.getElementById('view');
     ctx.clearRect(0,0, view.width, view.height);
-
-    console.log(scene.view.vrp);
     vrp = scene.view.vrp;
     vpn = scene.view.vpn;
     vup = scene.view.vup;
@@ -156,25 +246,16 @@ function DrawScene() {
                          [0, h/2, 0, h/2],
                          [0, 0, 1, 0],
                          [0, 0, 0, 1]]
-
-    //console.log(scene);
+    
     //Updates Vectors with Matrix
     if(scene.view.type === 'perspective'){
         var persp = mat4x4perspective(vrp, vpn, vup, prp, clip);
         vec = [];
-        for(var i = 0; i < scene.models[0].vertices.length; i++){
-            
+        for(var i = 0; i < scene.models[0].vertices.length; i++){    
+            //add also the rotation        
             vec.push(Matrix.multiply(persp, scene.models[0].vertices[i]));
-            // console.log(vec);
-            //hold_x = vec[i].x / vec[i].w;
-            //hold_y = vec[i].y / vec[i].w;
-            //hold_z = vec[i].z / vec[i].w;
-            //vec[i].x = hold_x;
-            //vec[i].y = hold_y;
-            //vec[i].z = hold_z;
-
         }
-        //console.log(vec);
+        
         //loop through the edges and draw the lines
         M_per = new Matrix(4,4);
 
@@ -194,7 +275,6 @@ function DrawScene() {
                     //APPLY MATRICES
                     lineToCheck.pt0 = Matrix.multiply(transscale,M_per,lineToCheck.pt0);
                     lineToCheck.pt1 = Matrix.multiply(transscale,M_per,lineToCheck.pt1);
-                    console.log("LOL");
                     //DRAWLINE
                     DrawLine((lineToCheck.pt0.x)/(lineToCheck.pt0.w),(lineToCheck.pt0.y)/(lineToCheck.pt0.w),(lineToCheck.pt1.x)/(lineToCheck.pt1.w),(lineToCheck.pt1.y)/(lineToCheck.pt1.w));
                 }
@@ -202,24 +282,12 @@ function DrawScene() {
             }
         }
 
-        // for(k = 0; k < scene.models[0].vertices.length; k++){
-        //     console.log(getOutcode(scene.models[0].vertices[0]));
-
-        // }
-        //console.log(getOutcode(new Vector4(30, -10, 10, 1)));
     }else{
         //Parallel clipping
         var paral = mat4x4parallel(vrp, vpn, vup, prp, clip);
         vec = [];
         for(var i = 0; i < scene.models[0].vertices.length; i++){
             vec.push(Matrix.multiply(paral, scene.models[0].vertices[i]));
-            //hold_x = vec[i].x / vec[i].w;
-            //hold_y = vec[i].y / vec[i].w;
-            //hold_z = vec[i].z / vec[i].w;
-            //vec[i].x = hold_x;
-            //vec[i].y = hold_y;
-            //vec[i].z = hold_z;
-
         }
         for(var j = 0; j < scene.models[0].edges.length; j++){
             for(var k = 0; k < scene.models[0].edges[j].length-1; k=k+1){
@@ -241,9 +309,10 @@ function DrawScene() {
         }
 
     }
+    //window.requestAnimationFrame(Animate);	
 }
 
-// Called when user selects a new scene JSON file
+
 function LoadNewScene() {
     var scene_file = document.getElementById('scene_file');
     var reader = new FileReader();
@@ -289,6 +358,8 @@ function DrawLine(x1, y1, x2, y2) {
     ctx.fillRect(x2 - 2, y2 - 2, 4, 4);
 }
 
+//--------------------------------------------------//
+//CLIPPING FUNCTIONS
 function getOutcode(pt){
     if(scene.view.type === "perspective"){
         var outcode = 0;
@@ -331,7 +402,6 @@ function getOutcode(pt){
         }
     }
     
-   // console.log("I got here! Outcode: " + outcode);
     return outcode;
 }
 
@@ -412,15 +482,8 @@ function ClipLine(pt0, pt1){
                 else{
                     outcode1 = selected_outcode;
                 }
-            }
-            
+            }   
         }
-        
-    //Draw Line Here DO NOT RETURN
-    /*if(result != null){
-        DrawLine(result.pt0.x,result.pt0.y,result.pt1.x,result.pt1.y);
-    }*/
-
     return result;
     }else{
         while (!done) {
@@ -476,11 +539,8 @@ function ClipLine(pt0, pt1){
                 else{
                     outcode1 = selected_outcode;
                 }
-                //right, top bottom, front, back
-
             }
         }
-
     }
     return result;
 }
