@@ -316,6 +316,7 @@ function DrawScene() {
 function LoadNewScene() {
     var scene_file = document.getElementById('scene_file');
     var reader = new FileReader();
+    
     reader.onload = (event) => {
         scene = JSON.parse(event.target.result);
         scene.view.vrp = Vector3(scene.view.vrp[0], scene.view.vrp[1], scene.view.vrp[2]);
@@ -331,6 +332,71 @@ function LoadNewScene() {
                                                           scene.models[i].vertices[j][2],
                                                           1);
                 }
+            }else if(scene.models[i].type === 'cube'){
+                scene.models[0].vertices = [];
+                scene.models[0].edges = [];
+                scene.models[0].animation = {axis: "x", rps: 0.5};
+                scene.view = {
+                    type: 'perspective',
+                    vrp: Vector3(20, 0, -30),
+                    vpn: Vector3(1, 0, 1),
+                    vup: Vector3(0, 1, 0),
+                    prp: Vector3(14, 20, 26),
+                    clip: [-20, 20, -4, 36, 1, -50]
+                };
+               console.log(scene.models[i].center[2]);
+                scene.models[i].center = Vector4(scene.models[i].center[0],
+                                                 scene.models[i].center[1],
+                                                 scene.models[i].center[2],
+                                                 1);
+                    
+                scene.models[i].vertices[0] = Vector4(scene.models[i].center.x + 4,
+                                                        scene.models[i].center.y + 4,
+                                                        scene.models[i].center.z + 4,
+                                                      1);
+                
+                scene.models[i].vertices[1] = Vector4(scene.models[i].center[0] + 4,
+                                                    scene.models[i].center[1] + 4,
+                                                    scene.models[i].center[2] -4,
+                                                      1);
+                            
+                scene.models[i].vertices[2] = Vector4(scene.models[i].center[0] - 4,
+                                                    scene.models[i].center[1] + 4,
+                                                    scene.models[i].center[2]- 4,
+                                                      1);
+
+                scene.models[i].vertices[3] = Vector4(scene.models[i].center[0] - 4,
+                                                        scene.models[i].center[1]+ 4,
+                                                        scene.models[i].center[2]+ 4,
+                                                      1);
+
+                scene.models[i].vertices[4] = Vector4(scene.models[i].center[0] - 4,
+                                                    scene.models[i].center[1] - 4,
+                                                    scene.models[i].center[2] + 4,
+                                                      1);
+                scene.models[i].vertices[5] = Vector4(scene.models[i].center[0] + 4,
+                                                        scene.models[i].center[1] - 4,
+                                                        scene.models[i].center[2] + 4,
+                                                      1);
+
+                scene.models[i].vertices[6] = Vector4(scene.models[i].center[0] + 4,
+                                                    scene.models[i].center[1] - 4,
+                                                    scene.models[i].center[2] - 4,
+                                                      1);
+                
+                scene.models[i].vertices[7] = Vector4(scene.models[i].center[0] - 4,
+                                                      scene.models[i].center[1] + 4,
+                                                      scene.models[i].center[2] - 4,
+                                                      1);
+                
+                scene.models[i].edges[0] = [0,1,2,3,0];
+                scene.models[i].edges[1] = [0,5,6,1];
+                scene.models[i].edges[2] = [3,4,7,2];
+                scene.models[i].edges[3] = [7,6];
+                scene.models[i].edges[4] = [4,5];
+
+
+
             }
             else {
                 scene.models[i].center = Vector4(scene.models[i].center[0],
